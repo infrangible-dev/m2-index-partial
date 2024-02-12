@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<!--
+ * @author      Andreas Knollmann
+ * @copyright   Copyright (c) 2014-2024 Softwareentwicklung Andreas Knollmann
+ * @license     http://www.opensource.org/licenses/mit-license.php MIT
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="indexer:url-rewrite:category" xsi:type="object">Infrangible\IndexPartial\Console\CategoryUrlRewrite</item>
+                <item name="indexer:url-rewrite:product" xsi:type="object">Infrangible\IndexPartial\Console\ProductUrlRewrite</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

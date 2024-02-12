@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<!--
+ * @author      Andreas Knollmann
+ * @copyright   Copyright (c) 2014-2024 Softwareentwicklung Andreas Knollmann
+ * @license     http://www.opensource.org/licenses/mit-license.php MIT
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <infrangible_indexpartial>
+            <indexer>
+                <cataloginventory_stock>Infrangible\IndexPartial\Model\Indexer\CatalogInventory</cataloginventory_stock>
+                <catalogsearch_fulltext>Infrangible\IndexPartial\Model\Indexer\CatalogSearch</catalogsearch_fulltext>
+                <catalog_category_flat>Infrangible\IndexPartial\Model\Indexer\Category\Flat</catalog_category_flat>
+                <catalog_category_product>Infrangible\IndexPartial\Model\Indexer\Category\Product</catalog_category_product>
+                <catalog_product_attribute>Infrangible\IndexPartial\Model\Indexer\Product\Attribute</catalog_product_attribute>
+                <catalog_product_category>Infrangible\IndexPartial\Model\Indexer\Product\Category</catalog_product_category>
+                <catalog_product_flat>Infrangible\IndexPartial\Model\Indexer\Product\Flat</catalog_product_flat>
+                <catalog_product_price>Infrangible\IndexPartial\Model\Indexer\Product\Price</catalog_product_price>
+                <catalog_url_category>Infrangible\IndexPartial\Model\Indexer\Category\Url</catalog_url_category>
+                <catalog_url_product>Infrangible\IndexPartial\Model\Indexer\Product\Url</catalog_url_product>
+                <inventory>Infrangible\IndexPartial\Model\Indexer\Inventory</inventory>
+            </indexer>
+        </infrangible_indexpartial>
+        <url>
+            <convert>
+                <!-- see \Magento\Framework\Filter\Translit - replace german umlauts -->
+                <val1><from>ä</from><to>ae</to></val1>
+                <val2><from>ö</from><to>oe</to></val2>
+                <val3><from>ü</from><to>ue</to></val3>
+                <val4><from>Ä</from><to>Ae</to></val4>
+                <val5><from>Ö</from><to>Oe</to></val5>
+                <val6><from>Ü</from><to>Ue</to></val6>
+                <val7><from>ß</from><to>ss</to></val7>
+                <val8><from>ẞ</from><to>Ss</to></val8>
+            </convert>
+        </url>
+    </default>
+</config>

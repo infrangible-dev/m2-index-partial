@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<!--
+ * @author      Philipp Adler
+ * @copyright   Copyright (c) 2014-2024 Softwareentwicklung Andreas Knollmann
+ * @license     http://www.opensource.org/licenses/mit-license.php MIT
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="infrangible_indexpartial" translate="label" type="text" sortOrder="350" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Index Partial</label>
+            <tab>infrangible</tab>
+            <resource>Infrangible_IndexPartial::config_infrangible_index_partial</resource>
+        </section>
+    </system>
+</config>
