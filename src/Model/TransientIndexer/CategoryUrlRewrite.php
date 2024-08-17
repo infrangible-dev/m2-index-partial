@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Infrangible\IndexPartial\Model\TransientIndexer;
 
 use Exception;
+use FeWeDev\Base\Variables;
 use Infrangible\Core\Helper\Attribute;
 use Infrangible\Core\Helper\Database;
 use Infrangible\Core\Helper\Stores;
@@ -19,15 +22,13 @@ use Magento\Framework\Indexer\ActionInterface;
 use Magento\UrlRewrite\Model\Exception\UrlAlreadyExistsException;
 use Magento\UrlRewrite\Model\UrlPersistInterface;
 use Psr\Log\LoggerInterface;
-use Tofex\Help\Variables;
 
 /**
  * @author      Andreas Knollmann
  * @copyright   Copyright (c) 2014-2024 Softwareentwicklung Andreas Knollmann
  * @license     http://www.opensource.org/licenses/mit-license.php MIT
  */
-class CategoryUrlRewrite
-    implements ActionInterface
+class CategoryUrlRewrite implements ActionInterface
 {
     /** @var Stores */
     protected $storeHelper;
@@ -36,7 +37,7 @@ class CategoryUrlRewrite
     protected $databaseHelper;
 
     /** @var Variables */
-    protected $variableHelper;
+    protected $variables;
 
     /** @var Attribute */
     protected $attributeHelper;
@@ -77,24 +78,10 @@ class CategoryUrlRewrite
     /** @var array */
     private $categoryAttributeUpdates = [];
 
-    /**
-     * @param Stores                            $storeHelper
-     * @param Database                          $databaseHelper
-     * @param Variables                         $variableHelper
-     * @param Attribute                         $attributeHelper
-     * @param \Infrangible\Core\Helper\Category $categoryHelper
-     * @param LoggerInterface                   $logging
-     * @param CategoryUrlRewriteGenerator       $categoryUrlRewriteGenerator
-     * @param UrlRewriteHandler                 $urlRewriteHandler
-     * @param UrlRewriteBunchReplacer           $urlRewriteBunchReplacer
-     * @param DatabaseMapPool                   $databaseMapPool
-     * @param CategoryUrlPathGenerator          $categoryUrlPathGenerator
-     * @param UrlPersistInterface               $urlPersist
-     */
     public function __construct(
         Stores $storeHelper,
         Database $databaseHelper,
-        Variables $variableHelper,
+        Variables $variables,
         Attribute $attributeHelper,
         \Infrangible\Core\Helper\Category $categoryHelper,
         LoggerInterface $logging,
@@ -103,14 +90,13 @@ class CategoryUrlRewrite
         UrlRewriteBunchReplacer $urlRewriteBunchReplacer,
         DatabaseMapPool $databaseMapPool,
         CategoryUrlPathGenerator $categoryUrlPathGenerator,
-        UrlPersistInterface $urlPersist)
-    {
+        UrlPersistInterface $urlPersist
+    ) {
         $this->storeHelper = $storeHelper;
         $this->databaseHelper = $databaseHelper;
-        $this->variableHelper = $variableHelper;
+        $this->variables = $variables;
         $this->attributeHelper = $attributeHelper;
         $this->categoryHelper = $categoryHelper;
-
         $this->logging = $logging;
         $this->categoryUrlRewriteGenerator = $categoryUrlRewriteGenerator;
         $this->urlRewriteHandler = $urlRewriteHandler;
@@ -121,12 +107,9 @@ class CategoryUrlRewrite
     }
 
     /**
-     * Execute full indexation
-     *
-     * @return void
      * @throws Exception
      */
-    public function executeFull()
+    public function executeFull(): void
     {
         $categoryCollection = $this->categoryHelper->getCategoryCollection();
 
@@ -135,7 +118,7 @@ class CategoryUrlRewrite
         $this->executeList = true;
 
         foreach ($ids as $id) {
-            $this->indexCategory($id);
+            $this->indexCategory($this->variables->intValue($id));
         }
 
         $this->executeList = false;
@@ -145,21 +128,18 @@ class CategoryUrlRewrite
     }
 
     /**
-     * Execute partial indexation by ID list
-     *
      * @param int[] $ids
      *
-     * @return void
      * @throws Exception
      */
-    public function executeList(array $ids)
+    public function executeList(array $ids): void
     {
         $ids = array_unique($ids);
 
         $this->executeList = true;
 
         foreach ($ids as $id) {
-            $this->indexCategory($id);
+            $this->indexCategory($this->variables->intValue($id));
         }
 
         $this->executeList = false;
@@ -169,27 +149,17 @@ class CategoryUrlRewrite
     }
 
     /**
-     * Execute partial indexation by ID
-     *
-     * @param int $id
-     *
-     * @return void
      * @throws Exception
      */
-    public function executeRow($id)
+    public function executeRow($id): void
     {
-        $this->indexCategory($id);
+        $this->indexCategory($this->variables->intValue($id));
     }
 
     /**
-     * Execute partial indexation by ID
-     *
-     * @param int $categoryId
-     *
-     * @return void
      * @throws Exception
      */
-    private function indexCategory(int $categoryId)
+    private function indexCategory(int $categoryId): void
     {
         $category = $this->categoryHelper->loadCategory($categoryId);
 
@@ -198,28 +168,44 @@ class CategoryUrlRewrite
                 continue;
             }
 
-            $category = $this->categoryHelper->loadCategory($categoryId, $storeId);
+            $category = $this->categoryHelper->loadCategory(
+                $this->variables->intValue($categoryId),
+                $this->variables->intValue($storeId)
+            );
 
-            $rootCategoryId = $this->getRootCategoryId($storeId);
+            $rootCategoryId = $this->getRootCategoryId($this->variables->intValue($storeId));
 
             if ((int)$category->getId() !== $rootCategoryId) {
                 $urlKey = $category->getUrlKey();
                 $urlPath = $category->getDataUsingMethod('url_path');
 
-                if ($this->variableHelper->isEmpty($urlKey)) {
+                if ($this->variables->isEmpty($urlKey)) {
                     $createdUrlKey = $this->categoryUrlPathGenerator->getUrlKey($category);
 
                     $category->setUrlKey($createdUrlKey);
 
                     if ($urlKey !== $createdUrlKey) {
-                        $this->updateCategoryAttribute($categoryId, 'url_key', $storeId, $createdUrlKey);
+                        $this->updateCategoryAttribute(
+                            $categoryId,
+                            'url_key',
+                            $storeId,
+                            $createdUrlKey
+                        );
                     }
                 }
 
-                $createdUrlPath = $this->generateCategoryUrlRewrites($category, $rootCategoryId);
+                $createdUrlPath = $this->generateCategoryUrlRewrites(
+                    $category,
+                    $rootCategoryId
+                );
 
                 if ($urlPath !== $createdUrlPath) {
-                    $this->updateCategoryAttribute($categoryId, 'url_path', $storeId, $createdUrlPath);
+                    $this->updateCategoryAttribute(
+                        $categoryId,
+                        'url_path',
+                        $storeId,
+                        $createdUrlPath
+                    );
                 }
             }
         }
@@ -227,10 +213,7 @@ class CategoryUrlRewrite
         $this->resetDatabaseMapPool([$category->getEntityId()]);
     }
 
-    /**
-     * @param array $categoryIds
-     */
-    private function resetDatabaseMapPool(array $categoryIds)
+    private function resetDatabaseMapPool(array $categoryIds): void
     {
         if ($this->executeList) {
             foreach ($categoryIds as $categoryId) {
@@ -239,28 +222,39 @@ class CategoryUrlRewrite
         } else {
             $categoryIds = array_unique($categoryIds);
 
-            $this->logging->debug(sprintf('Resetting database map pool of categories with ids: %s',
-                implode(',', $categoryIds)));
+            $this->logging->debug(
+                sprintf(
+                    'Resetting database map pool of categories with ids: %s',
+                    implode(
+                        ',',
+                        $categoryIds
+                    )
+                )
+            );
 
             foreach ($categoryIds as $categoryId) {
                 foreach ([
                     DataCategoryUrlRewriteDatabaseMap::class,
                     DataProductUrlRewriteDatabaseMap::class
                 ] as $className) {
-                    $this->databaseMapPool->resetMap($className, $categoryId);
+                    $this->databaseMapPool->resetMap(
+                        $className,
+                        $categoryId
+                    );
                 }
             }
         }
     }
 
     /**
-     * @param int $storeId
-     *
-     * @return int
+     * @throws Exception
      */
     private function getRootCategoryId(int $storeId): int
     {
-        if ( ! array_key_exists($storeId, $this->rootCategoryIds)) {
+        if (! array_key_exists(
+            $storeId,
+            $this->rootCategoryIds
+        )) {
             try {
                 $store = $this->storeHelper->getStore($storeId);
 
@@ -270,25 +264,30 @@ class CategoryUrlRewrite
             }
         }
 
-        return $this->rootCategoryIds[ $storeId ];
+        return $this->variables->intValue($this->rootCategoryIds[ $storeId ]);
     }
 
     /**
-     * @param int    $categoryId
-     * @param string $attributeCode
-     * @param int    $storeId
-     * @param string $value
-     *
      * @throws Exception
      */
-    private function updateCategoryAttribute(int $categoryId, string $attributeCode, int $storeId, string $value)
+    private function updateCategoryAttribute(int $categoryId, string $attributeCode, int $storeId, string $value): void
     {
-        $this->logging->debug(sprintf('Updating attribute with code: %s of category with id: %d in store with id: %d with value: %s',
-            $attributeCode, $categoryId, $storeId, $value));
+        $this->logging->debug(
+            sprintf(
+                'Updating attribute with code: %s of category with id: %d in store with id: %d with value: %s',
+                $attributeCode,
+                $categoryId,
+                $storeId,
+                $value
+            )
+        );
 
         $dbAdapter = $this->databaseHelper->getDefaultConnection();
 
-        $attribute = $this->attributeHelper->getAttribute(Category::ENTITY, $attributeCode);
+        $attribute = $this->attributeHelper->getAttribute(
+            Category::ENTITY,
+            $attributeCode
+        );
 
         $categoryAttributeUpdates = [];
 
@@ -296,13 +295,22 @@ class CategoryUrlRewrite
             $defaultValueQuery = $dbAdapter->select();
 
             $defaultValueQuery->from($attribute->getBackendTable());
-            $defaultValueQuery->where('attribute_id = ?', $attribute->getId());
-            $defaultValueQuery->where('store_id = ?', 0);
-            $defaultValueQuery->where('entity_id = ?', $categoryId);
+            $defaultValueQuery->where(
+                'attribute_id = ?',
+                $attribute->getId()
+            );
+            $defaultValueQuery->where(
+                'store_id = ?',
+                0
+            );
+            $defaultValueQuery->where(
+                'entity_id = ?',
+                $categoryId
+            );
 
             $defaultValueQueryResult = $dbAdapter->fetchRow($defaultValueQuery);
 
-            if ($this->variableHelper->isEmpty($defaultValueQueryResult)) {
+            if ($this->variables->isEmpty($defaultValueQueryResult)) {
                 $categoryAttributeUpdates[ $attribute->getBackendTable() ][] = [
                     'attribute_id' => $attribute->getId(),
                     'store_id'     => 0,
@@ -337,7 +345,11 @@ class CategoryUrlRewrite
 
         foreach ($categoryAttributeUpdates as $tableName => $tableCategoryAttributeUpdates) {
             foreach ($tableCategoryAttributeUpdates as $tableCategoryAttributeUpdate) {
-                $dbAdapter->insertOnDuplicate($tableName, $tableCategoryAttributeUpdate, ['value']);
+                $dbAdapter->insertOnDuplicate(
+                    $tableName,
+                    $tableCategoryAttributeUpdate,
+                    ['value']
+                );
             }
         }
     }
@@ -352,8 +364,13 @@ class CategoryUrlRewrite
      */
     private function generateCategoryUrlRewrites(Category $category, int $rootCategoryId, int $retry = 0): ?string
     {
-        $this->logging->debug(sprintf('Generate url rewrite for category with id: %d in store with id: %d',
-            $category->getId(), $category->getStoreId()));
+        $this->logging->debug(
+            sprintf(
+                'Generate url rewrite for category with id: %d in store with id: %d',
+                $category->getId(),
+                $category->getStoreId()
+            )
+        );
 
         if ($retry > 0) {
             $category->unsetData('url_path');
@@ -361,25 +378,46 @@ class CategoryUrlRewrite
 
         $urlPath = $this->categoryUrlPathGenerator->getUrlPath($category);
 
-        $category->setDataUsingMethod('url_path', $retry > 0 ? sprintf('%s-%d', $urlPath, $retry) : $urlPath);
+        $category->setDataUsingMethod(
+            'url_path',
+            $retry > 0 ? sprintf(
+                '%s-%d',
+                $urlPath,
+                $retry
+            ) : $urlPath
+        );
 
         try {
-            $categoryUrlRewrites = $this->categoryUrlRewriteGenerator->generate($category, true, $rootCategoryId);
+            $categoryUrlRewrites = $this->categoryUrlRewriteGenerator->generate(
+                $category,
+                true,
+                $rootCategoryId
+            );
 
-            foreach (array_chunk($categoryUrlRewrites, 10000) as $urlsBunch) {
+            foreach (array_chunk(
+                $categoryUrlRewrites,
+                10000
+            ) as $urlsBunch) {
                 $this->urlPersist->replace($urlsBunch);
             }
 
             $productUrls = $this->urlRewriteHandler->generateProductUrlRewrites($category);
 
-            foreach (array_chunk($productUrls, 10000) as $urlsBunch) {
+            foreach (array_chunk(
+                $productUrls,
+                10000
+            ) as $urlsBunch) {
                 $this->urlPersist->replace($urlsBunch);
             }
         } catch (UrlAlreadyExistsException $exception) {
             $urlPath = $category->getDataUsingMethod('url_path');
 
-            if ( ! $this->variableHelper->isEmpty($urlPath) && $retry < 10) {
-                return $this->generateCategoryUrlRewrites($category, $rootCategoryId, $retry + 1);
+            if (! $this->variables->isEmpty($urlPath) && $retry < 10) {
+                return $this->generateCategoryUrlRewrites(
+                    $category,
+                    $rootCategoryId,
+                    $retry + 1
+                );
             } else {
                 return null;
             }

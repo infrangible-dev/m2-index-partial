@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Infrangible\IndexPartial\Model;
 
 use Exception;
@@ -41,18 +43,12 @@ abstract class Indexer
     /** @var array */
     private $indexData;
 
-    /**
-     * @param LoggerInterface $logging
-     * @param Attribute       $attributeHelper
-     * @param Database        $databaseHelper
-     * @param Stores          $storeHelper
-     */
     public function __construct(
         LoggerInterface $logging,
         Attribute $attributeHelper,
         Database $databaseHelper,
-        Stores $storeHelper)
-    {
+        Stores $storeHelper
+    ) {
         $this->attributeHelper = $attributeHelper;
         $this->databaseHelper = $databaseHelper;
         $this->storeHelper = $storeHelper;
@@ -60,36 +56,22 @@ abstract class Indexer
         $this->logging = $logging;
     }
 
-    /**
-     * @return \Magento\Indexer\Model\Indexer
-     */
     public function getIndexer(): \Magento\Indexer\Model\Indexer
     {
         return $this->indexer;
     }
 
-    /**
-     * @param \Magento\Indexer\Model\Indexer $indexer
-     */
     public function setIndexer(\Magento\Indexer\Model\Indexer $indexer)
     {
         $this->indexer = $indexer;
     }
 
-    /**
-     * @return bool
-     */
     public function isTest(): bool
     {
         return $this->test === true;
     }
 
-    /**
-     * @param bool $test
-     *
-     * @return void
-     */
-    public function setTest(bool $test = true)
+    public function setTest(bool $test = true): void
     {
         $this->test = $test;
     }
@@ -115,25 +97,57 @@ abstract class Indexer
      */
     public function prepareData(array $indexData)
     {
-        if ( ! empty($indexData)) {
+        if (! empty($indexData)) {
             foreach ($indexData as $storeId => $entityData) {
-                if ( ! is_numeric($storeId)) {
-                    throw new Exception(sprintf('Invalid store id: %s', $storeId));
+                if (! is_numeric($storeId)) {
+                    throw new Exception(
+                        sprintf(
+                            'Invalid store id: %s',
+                            $storeId
+                        )
+                    );
                 }
 
-                if ( ! is_array($entityData)) {
-                    throw new Exception(sprintf('Invalid entity data for store with id: %d: %s', $storeId,
-                        trim(print_r($entityData, true))));
+                if (! is_array($entityData)) {
+                    throw new Exception(
+                        sprintf(
+                            'Invalid entity data for store with id: %d: %s',
+                            $storeId,
+                            trim(
+                                print_r(
+                                    $entityData,
+                                    true
+                                )
+                            )
+                        )
+                    );
                 }
 
                 foreach ($entityData as $entityId => $additionalData) {
-                    if ( ! is_numeric($entityId)) {
-                        throw new Exception(sprintf('Invalid entity id: %s in store with id: %d', $entityId, $storeId));
+                    if (! is_numeric($entityId)) {
+                        throw new Exception(
+                            sprintf(
+                                'Invalid entity id: %s in store with id: %d',
+                                $entityId,
+                                $storeId
+                            )
+                        );
                     }
 
-                    if ( ! is_array($additionalData)) {
-                        throw new Exception(sprintf('Invalid additional data for entity id: %d in store with id: %d: %s',
-                            $entityId, $storeId, trim(print_r($additionalData, true))));
+                    if (! is_array($additionalData)) {
+                        throw new Exception(
+                            sprintf(
+                                'Invalid additional data for entity id: %d in store with id: %d: %s',
+                                $entityId,
+                                $storeId,
+                                trim(
+                                    print_r(
+                                        $additionalData,
+                                        true
+                                    )
+                                )
+                            )
+                        );
                     }
                 }
             }
@@ -153,7 +167,6 @@ abstract class Indexer
     }
 
     /**
-     * @return bool
      * @throws Exception
      */
     public function shouldRunFullIndex(): bool
@@ -179,9 +192,6 @@ abstract class Indexer
         return $runFullIndex;
     }
 
-    /**
-     * @return int
-     */
     abstract protected function getFullIndexThreshold(): int;
 
     /**
@@ -193,13 +203,9 @@ abstract class Indexer
         $this->performReindex();
     }
 
-    /**
-     * @return void
-     */
-    abstract protected function performReindex();
+    abstract protected function performReindex(): void;
 
     /**
-     * @return array
      * @throws Exception
      */
     public function getIndexData(): array
@@ -220,7 +226,10 @@ abstract class Indexer
         $allEntityIds = [];
 
         foreach ($this->indexData as $entityIds) {
-            $allEntityIds = array_merge($allEntityIds, array_keys($entityIds));
+            $allEntityIds = array_merge(
+                $allEntityIds,
+                array_keys($entityIds)
+            );
         }
 
         return array_unique($allEntityIds);
@@ -240,11 +249,17 @@ abstract class Indexer
             $websiteId = $this->storeHelper->getStore($storeId)->getWebsiteId();
 
             foreach ($entityIds as $entityId => $additionalData) {
-                if ( ! array_key_exists($entityId, $entityWebsiteIds)) {
+                if (! array_key_exists(
+                    $entityId,
+                    $entityWebsiteIds
+                )) {
                     $entityWebsiteIds[ $entityId ] = [];
                 }
 
-                if ( ! array_key_exists($websiteId, $entityWebsiteIds[ $entityId ])) {
+                if (! array_key_exists(
+                    $websiteId,
+                    $entityWebsiteIds[ $entityId ]
+                )) {
                     $entityWebsiteIds[ $entityId ][] = $websiteId;
                 }
             }
@@ -266,19 +281,25 @@ abstract class Indexer
         foreach ($this->indexData as $storeId => $entityIds) {
             $websiteId = $this->storeHelper->getStore($storeId)->getWebsiteId();
 
-            if ( ! array_key_exists($websiteId, $websiteEntityIds)) {
+            if (! array_key_exists(
+                $websiteId,
+                $websiteEntityIds
+            )) {
                 $websiteEntityIds[ $websiteId ] = [];
             }
 
-            $websiteEntityIds[ $websiteId ] =
-                array_unique(array_merge($websiteEntityIds[ $websiteId ], array_keys($entityIds)));
+            $websiteEntityIds[ $websiteId ] = array_unique(
+                array_merge(
+                    $websiteEntityIds[ $websiteId ],
+                    array_keys($entityIds)
+                )
+            );
         }
 
         return $websiteEntityIds;
     }
 
     /**
-     * @return array
      * @throws Exception
      */
     protected function getStoreEntitiesByStatus(): array
@@ -292,9 +313,19 @@ abstract class Indexer
             $removeEntityIds = [];
 
             foreach ($entityIds as $entityId => $additionalData) {
-                if (empty($additionalData) || ! array_key_exists('status', $additionalData)) {
-                    $status = $this->attributeHelper->getAttributeValue($this->databaseHelper->getDefaultConnection(),
-                        Product::ENTITY, 'status', $entityId, $storeId, true, true);
+                if (empty($additionalData) || ! array_key_exists(
+                        'status',
+                        $additionalData
+                    )) {
+                    $status = $this->attributeHelper->getAttributeValue(
+                        $this->databaseHelper->getDefaultConnection(),
+                        Product::ENTITY,
+                        'status',
+                        $entityId,
+                        $storeId,
+                        true,
+                        true
+                    );
                 } else {
                     $status = $additionalData[ 'status' ];
                 }

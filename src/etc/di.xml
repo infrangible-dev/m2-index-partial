@@ -9,6 +9,7 @@
     <type name="Magento\Framework\Console\CommandList">
         <arguments>
             <argument name="commands" xsi:type="array">
+                <item name="indexer:partial-indexing" xsi:type="object">Infrangible\IndexPartial\Console\PartialIndexing</item>
                 <item name="indexer:url-rewrite:category" xsi:type="object">Infrangible\IndexPartial\Console\CategoryUrlRewrite</item>
                 <item name="indexer:url-rewrite:product" xsi:type="object">Infrangible\IndexPartial\Console\ProductUrlRewrite</item>
             </argument>

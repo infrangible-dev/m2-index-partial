@@ -13,33 +13,45 @@ use Symfony\Component\Console\Input\InputOption;
  * @copyright   Copyright (c) 2014-2024 Softwareentwicklung Andreas Knollmann
  * @license     http://www.opensource.org/licenses/mit-license.php MIT
  */
-class CategoryUrlRewrite extends Command
+class PartialIndexing extends Command
 {
     protected function getCommandName(): string
     {
-        return 'indexer:url-rewrite:category';
+        return 'indexer:partial-indexer';
     }
 
     protected function getCommandDescription(): string
     {
-        return 'Re-index category url rewrite(s)';
+        return 'Re-index indexes for specific entities';
     }
 
     protected function getCommandDefinition(): array
     {
         return [
             new InputOption(
-                'category_id',
-                'c',
+                'indexer',
+                'i',
+                InputOption::VALUE_REQUIRED,
+                'Re-index only this index or indexers separated by comma'
+            ),
+            new InputOption(
+                'entity_id',
+                'e',
+                InputOption::VALUE_REQUIRED,
+                'Re-index only this entity or entities separated by comma'
+            ),
+            new InputOption(
+                'store',
+                's',
                 InputOption::VALUE_OPTIONAL,
-                'Re-index only this category'
+                'Re-index only this store or stores by comma'
             )
         ];
     }
 
     protected function getClassName(): string
     {
-        return Script\CategoryUrlRewrite::class;
+        return Script\PartialIndexing::class;
     }
 
     protected function getArea(): string
