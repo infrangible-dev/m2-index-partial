@@ -1,11 +1,19 @@
 {
     "name": "infrangible/m2-index-partial",
-    "description": "Infrangible Magento 2 Index Partial",
+    "description": "Command-line tools to reindex single products or categories and rebuild their URL rewrites, plus German umlauts written as ae, oe, ue and ss in URLs.",
     "type": "magento2-module",
     "version": "2.0.1",
     "license": "MIT",
     "keywords": [
-        "Magento"
+        "Magento",
+        "Magento 2",
+        "Adobe Commerce",
+        "Developer tools",
+        "Performance",
+        "SEO",
+        "reindex single products",
+        "regenerate URL rewrites",
+        "umlauts in URLs"
     ],
     "homepage": "https://github.com/infrangible-dev/m2-index-partial",
     "authors": [
